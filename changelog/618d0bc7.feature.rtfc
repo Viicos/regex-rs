@@ -1,6 +1,0 @@
-+++
-date = 2026-10-28
-nonce = "618d0bc7"
-section = "feature"
-+++
-Initial release. The API is not considered stable yet, and may change in any release.
