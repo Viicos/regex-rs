@@ -282,7 +282,7 @@ use crate::options::{Options, configure};
 ///
 ///     >>> Regex(r"(?-u:\w){1000}")
 ///     Regex('(?-u:\\w){1000}')
-#[pyclass(frozen, module = "rustregex")]
+#[pyclass(frozen, module = "regex_rs")]
 pub struct Regex {
     pub(crate) inner: regex::Regex,
     options: Options,

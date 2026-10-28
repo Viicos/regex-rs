@@ -1,5 +1,5 @@
-rustregex documentation
-=======================
+regex-rs documentation
+======================
 
 .. include:: ../../README.rst
 

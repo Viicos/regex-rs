@@ -260,9 +260,9 @@ jobs:
           path: dist
 
       - run: uv sync --only-dev
-      - run: uv pip install rustregex --no-index --no-deps --find-links dist --force-reinstall
+      - run: uv pip install regexrs-py --no-index --no-deps --find-links dist --force-reinstall
       - run: uv run --no-sync pytest
-      - run: uv run --no-sync python -c "import sys, rustregex._rustregex as m; print(sys.version, m.__file__, m.REGEX_VERSION)"
+      - run: uv run --no-sync python -c "import sys, regex_rs._regex_rs as m; print(sys.version, m.__file__, m.REGEX_VERSION)"
 
   check: # This job does nothing and is only used for the branch protection
     if: always()

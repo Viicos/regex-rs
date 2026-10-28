@@ -1,7 +1,7 @@
 API reference
 =============
 
-.. module:: rustregex
+.. module:: regex_rs
 
 .. autofunction:: escape
 

@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from rustregex import (
+from regex_rs import (
     REGEX_VERSION,
     Captures,
     CompiledTooBigError,
@@ -338,7 +338,7 @@ class TestRegexSet:
         assert not matches.matched(1)
         assert matches.matched_any()
         assert not matches.matched_all()
-        assert repr(matches) == "<rustregex.SetMatches [0, 2, 3, 4, 6]>"
+        assert repr(matches) == "<regex_rs.SetMatches [0, 2, 3, 4, 6]>"
         with pytest.raises(IndexError):
             matches.matched(7)
 

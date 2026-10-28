@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-import rustregex
+import regex_rs
 
 
 def _examples() -> list[doctest.DocTest]:
@@ -14,15 +14,15 @@ def _examples() -> list[doctest.DocTest]:
     # submodules, so docstrings are collected from the public API instead.
     parser = doctest.DocTestParser()
     tests: list[doctest.DocTest] = []
-    for name in rustregex.__all__:
-        obj = getattr(rustregex, name)
-        objects = [(f"rustregex.{name}", obj)]
+    for name in regex_rs.__all__:
+        obj = getattr(regex_rs, name)
+        objects = [(f"regex_rs.{name}", obj)]
         if inspect.isclass(obj):
-            objects += [(f"rustregex.{name}.{attr}", value) for attr, value in vars(obj).items() if attr != "__doc__"]
+            objects += [(f"regex_rs.{name}.{attr}", value) for attr, value in vars(obj).items() if attr != "__doc__"]
         for qualname, value in objects:
             doc = getattr(value, "__doc__", None)
             if isinstance(doc, str) and ">>>" in doc:
-                tests.append(parser.get_doctest(doc, vars(rustregex).copy(), qualname, None, 0))
+                tests.append(parser.get_doctest(doc, vars(regex_rs).copy(), qualname, None, 0))
     return tests
 
 
@@ -37,7 +37,7 @@ def test_docstring_examples(test: doctest.DocTest) -> None:
 def test_examples_are_found() -> None:
     # Guards against examples silently not being collected.
     names = {test.name for test in _examples()}
-    assert {"rustregex.Regex", "rustregex.Regex.find", "rustregex.Regex.captures_len", "rustregex.escape"} <= names
+    assert {"regex_rs.Regex", "regex_rs.Regex.find", "regex_rs.Regex.captures_len", "regex_rs.escape"} <= names
 
 
 def test_readme_examples() -> None:

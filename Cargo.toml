@@ -1,5 +1,5 @@
 [package]
-name = "rustregex"
+name = "regexrs-py"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.95"
@@ -7,12 +7,10 @@ license = "MIT"
 publish = false
 
 [lib]
-name = "_rustregex"
+name = "_regex_rs"
 crate-type = ["cdylib"]
 
 [features]
-# Embeds introspection data used to generate `_rustregex.pyi`.
-# Only enabled when (re)generating stubs, not in release builds.
 stubs = ["pyo3/experimental-inspect"]
 
 [dependencies]

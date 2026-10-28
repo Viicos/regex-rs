@@ -126,4 +126,4 @@ jobs:
         run: ./scripts/generate-stubs.sh
 
       - name: Check for differences
-        run: git diff --exit-code python/rustregex/_rustregex.pyi
+        run: git diff --exit-code python/regex_rs/_regex_rs.pyi

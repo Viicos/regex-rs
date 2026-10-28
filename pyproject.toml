@@ -3,7 +3,7 @@ requires = ["maturin>=1.15,<2"]
 build-backend = "maturin"
 
 [project]
-name = "rustregex"
+name = "regexrs-py"
 description = "Python bindings to the Rust regex crate"
 authors = [
     {name = "Victorien", email = "contact@vctrn.dev"}
@@ -51,7 +51,7 @@ build = [
 
 [tool.maturin]
 python-source = "python"
-module-name = "rustregex._rustregex"
+module-name = "regex_rs._regex_rs"
 
 [tool.uv]
 default-groups = ["dev", "docs"]
@@ -88,7 +88,7 @@ ignore = [
 "docs/source/conf.py" = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["rustregex"]
+known-first-party = ["regex_rs"]
 
 [tool.pytest]
 testpaths = ["tests"]

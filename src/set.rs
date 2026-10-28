@@ -111,7 +111,7 @@ use crate::options::{Options, configure};
 ///
 ///     >>> RegexSet([r"\w+", r"\d+"]).is_match("foo")
 ///     True
-#[pyclass(frozen, module = "rustregex")]
+#[pyclass(frozen, module = "regex_rs")]
 pub struct RegexSet {
     inner: regex::RegexSet,
     options: Options,
@@ -395,7 +395,7 @@ impl RegexSet {
 /// length is the number of regexes that matched.
 ///
 /// Values of this type are constructed by :meth:`RegexSet.matches`.
-#[pyclass(frozen, module = "rustregex")]
+#[pyclass(frozen, module = "regex_rs")]
 pub struct SetMatches {
     inner: regex::SetMatches,
 }
@@ -461,7 +461,7 @@ impl SetMatches {
 
     fn __repr__(&self) -> String {
         format!(
-            "<rustregex.SetMatches {:?}>",
+            "<regex_rs.SetMatches {:?}>",
             self.inner.iter().collect::<Vec<_>>()
         )
     }
@@ -479,7 +479,7 @@ impl SetMatches {
 ///     >>> regex_set = RegexSet([r"[0-9]", r"[a-z]", r"[A-Z]", r"\p{Greek}"])
 ///     >>> [index for index in regex_set.matches("βa1")]
 ///     [0, 1, 3]
-#[pyclass(module = "rustregex")]
+#[pyclass(module = "regex_rs")]
 pub struct SetMatchesIter {
     indices: regex::SetMatchesIntoIter,
 }

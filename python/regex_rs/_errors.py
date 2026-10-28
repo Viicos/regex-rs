@@ -15,7 +15,7 @@ class PatternSyntaxError(RegexError):
 class CompiledTooBigError(RegexError):
     """Raised when a compiled regular expression would exceed the configured size limit.
 
-    See the ``size_limit`` argument of :class:`~rustregex.Regex`.
+    See the ``size_limit`` argument of :class:`~regex_rs.Regex`.
     """
 
     limit: int

@@ -9,7 +9,7 @@ mod pyregex;
 mod set;
 
 #[pymodule]
-mod _rustregex {
+mod _regex_rs {
     use pyo3::prelude::*;
 
     #[pymodule_export]

@@ -1,7 +1,7 @@
 """Python bindings to the Rust `regex <https://docs.rs/regex>`_ crate."""
 
 from ._errors import CompiledTooBigError, PatternSyntaxError, RegexError
-from ._rustregex import (
+from ._regex_rs import (
     REGEX_VERSION,
     CaptureMatches,
     Captures,

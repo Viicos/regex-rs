@@ -73,7 +73,7 @@ impl Searcher {
 ///     Note that since an iterator runs potentially many searches on the haystack and since each search
 ///     has worst case ``O(m * n)`` time complexity, the overall worst case time complexity for
 ///     iteration is ``O(m * n^2)``.
-#[pyclass(module = "rustregex")]
+#[pyclass(module = "regex_rs")]
 pub struct Matches {
     regex: Py<Regex>,
     haystack: Py<PyString>,
@@ -128,7 +128,7 @@ impl Matches {
 ///     Note that since an iterator runs potentially many searches on the haystack and since each search
 ///     has worst case ``O(m * n)`` time complexity, the overall worst case time complexity for
 ///     iteration is ``O(m * n^2)``.
-#[pyclass(module = "rustregex")]
+#[pyclass(module = "regex_rs")]
 pub struct CaptureMatches {
     regex: Py<Regex>,
     haystack: Py<PyString>,
@@ -178,7 +178,7 @@ impl CaptureMatches {
 ///     Note that since an iterator runs potentially many searches on the haystack and since each search
 ///     has worst case ``O(m * n)`` time complexity, the overall worst case time complexity for
 ///     iteration is ``O(m * n^2)``.
-#[pyclass(module = "rustregex")]
+#[pyclass(module = "regex_rs")]
 pub struct Split {
     regex: Py<Regex>,
     haystack: Py<PyString>,
@@ -259,7 +259,7 @@ impl Split {
 ///
 ///     Although note that the worst case time here has an upper bound given by the ``limit``
 ///     parameter to :meth:`Regex.splitn`.
-#[pyclass(module = "rustregex")]
+#[pyclass(module = "regex_rs")]
 pub struct SplitN {
     split: Split,
     limit: usize,

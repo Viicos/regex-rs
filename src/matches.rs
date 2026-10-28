@@ -47,7 +47,7 @@ enum GroupKey {
 ///     >>> m = Regex(r"\p{Greek}+").find("Greek: αβγδ")
 ///     >>> m.start, m.end, m.is_empty(), len(m), m.span, m.text
 ///     (7, 11, False, 4, (7, 11), 'αβγδ')
-#[pyclass(frozen, module = "rustregex")]
+#[pyclass(frozen, module = "regex_rs")]
 pub struct Match {
     haystack: Py<PyString>,
     span: Span,
@@ -114,7 +114,7 @@ impl Match {
     fn __repr__(&self, py: Python<'_>) -> PyResult<String> {
         let text = self.text(py)?.repr()?;
         Ok(format!(
-            "<rustregex.Match span=({}, {}) text={text}>",
+            "<regex_rs.Match span=({}, {}) text={text}>",
             self.span.start, self.span.end
         ))
     }
@@ -155,7 +155,7 @@ impl Match {
 ///     >>> caps = Regex(r"(?<first>\w)(\w)(?:\w)\w(?<last>\w)").captures("toady")
 ///     >>> caps[0].text, caps["first"].text, caps[2].text, caps["last"].text
 ///     ('toady', 't', 'o', 'y')
-#[pyclass(frozen, module = "rustregex")]
+#[pyclass(frozen, module = "regex_rs")]
 pub struct Captures {
     regex: Py<Regex>,
     haystack: Py<PyString>,
@@ -432,7 +432,7 @@ impl Captures {
         let whole = self.get_match(py);
         let text = whole.text(py)?.repr()?;
         Ok(format!(
-            "<rustregex.Captures span=({}, {}) text={text}>",
+            "<regex_rs.Captures span=({}, {}) text={text}>",
             whole.span.start, whole.span.end
         ))
     }
@@ -450,7 +450,7 @@ impl Captures {
 /// be non-``None``.
 ///
 /// This iterator is created by iterating over a :class:`Captures`.
-#[pyclass(module = "rustregex")]
+#[pyclass(module = "regex_rs")]
 pub struct SubCaptureMatches {
     groups: std::vec::IntoIter<Option<Match>>,
 }
