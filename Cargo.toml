@@ -1,0 +1,24 @@
+[package]
+name = "rustregex"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "MIT"
+publish = false
+
+[lib]
+name = "_rustregex"
+crate-type = ["cdylib"]
+
+[features]
+# Embeds introspection data used to generate `_rustregex.pyi`.
+# Only enabled when (re)generating stubs, not in release builds.
+stubs = ["pyo3/experimental-inspect"]
+
+[dependencies]
+pyo3 = { version = "=0.30.1", features = ["abi3-py311", "abi3t"] }
+# When bumping, keep the version stated in README.rst in sync.
+regex = "=1.13.1"
+# Only used for the replacement string syntax of `Captures.expand()`, which `regex` implements on top of it.
+# Keep in sync with the version `regex` depends on (see `Cargo.lock`).
+regex-automata = { version = "=0.4.18", default-features = false }

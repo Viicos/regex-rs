@@ -1,0 +1,129 @@
+name: lint
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**'
+  pull_request: {}
+
+permissions:
+  contents: read
+
+jobs:
+  prek:
+    name: Run prek pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0
+
+  ruff-format:
+    name: Check code formatting with Ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.15
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          python-version: '3.15'
+          enable-cache: true # zizmor: ignore[cache-poisoning] (Job does not produce release artifacts and does not have sensitive permissions)
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run Ruff formatter
+        run: uv run ruff format --diff
+
+  ruff-check:
+    name: Check code linting with Ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.15
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          python-version: '3.15'
+          enable-cache: true # zizmor: ignore[cache-poisoning] (Job does not produce release artifacts and does not have sensitive permissions)
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run Ruff linter
+        run: uv run ruff check --output-format=github
+
+  typecheck:
+    name: Run typechecking with pyright
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.15
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          python-version: '3.15'
+          enable-cache: true # zizmor: ignore[cache-poisoning] (Job does not produce release artifacts and does not have sensitive permissions)
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run pyright
+        run: uv run pyright
+
+  rustfmt:
+    name: Check Rust formatting with rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run rustfmt
+        run: cargo fmt --check
+
+  clippy:
+    name: Check Rust linting with clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run clippy
+        run: cargo clippy --locked --all-targets -- --deny warnings
+
+  stubs:
+    name: Check type stubs are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Stubs depend on the Python version, and are generated with the oldest supported one.
+      - name: Set up Python 3.11
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          python-version: '3.11'
+          enable-cache: true # zizmor: ignore[cache-poisoning] (Job does not produce release artifacts and does not have sensitive permissions)
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Generate stubs
+        run: ./scripts/generate-stubs.sh
+
+      - name: Check for differences
+        run: git diff --exit-code python/rustregex/_rustregex.pyi
