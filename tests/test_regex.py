@@ -1,5 +1,6 @@
 import copy
 import pickle
+import sys
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -149,6 +150,7 @@ class TestSearching:
         assert m.span == (10_000, 10_006)
         assert Regex("needle").replace(haystack, "x") == "é" * 10_000 + "x"
 
+    @pytest.mark.skipif(sys.platform == "emscripten", reason="No thread support in Emscripten")
     def test_threads(self) -> None:
         regex = Regex(r"(\w+)@(\w+)\.com")
         haystack = "a@b.com " * 5_000
