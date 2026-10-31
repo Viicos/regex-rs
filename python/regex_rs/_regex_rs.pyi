@@ -1,6 +1,22 @@
 import collections.abc
 from typing import Any, Final, SupportsIndex, final
 
+__all__ = [
+    "REGEX_VERSION",
+    "CaptureMatches",
+    "Captures",
+    "Match",
+    "Matches",
+    "Regex",
+    "RegexSet",
+    "SetMatches",
+    "SetMatchesIter",
+    "Split",
+    "SplitN",
+    "SubCaptureMatches",
+    "escape",
+]
+
 REGEX_VERSION: Final[str]
 """
 The version of the Rust ``regex`` crate this module was built against.
@@ -26,7 +42,7 @@ class CaptureMatches:
 
 @final
 class Captures:
-    r"""
+    """
     Represents the capture groups for a single match.
 
     Capture groups refer to parts of a regex enclosed in parentheses. They can be optionally named. The
@@ -39,7 +55,7 @@ class Captures:
 
     .. code-block:: regex
 
-        (?<first>\w)(\w)(?:\w)\w(?<last>\w)
+        (?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)
 
     This regex has 4 capture groups:
 
@@ -49,7 +65,7 @@ class Captures:
     * The group at index ``2`` with no name corresponding to the second letter.
     * The group at index ``3`` with name ``last`` corresponding to the fifth and last letter.
 
-    Notice that ``(?:\w)`` was not listed above as a capture group despite it being enclosed in
+    Notice that ``(?:\\w)`` was not listed above as a capture group despite it being enclosed in
     parentheses. That's because ``(?:pattern)`` is a special syntax that permits grouping but *without*
     capturing. The reason for not treating it as a capture is that tracking and reporting capture
     groups requires additional state that may lead to slower searches. So using as few capture groups
@@ -59,7 +75,7 @@ class Captures:
     Values with this type are created by :meth:`Regex.captures` or :meth:`Regex.captures_iter`.
 
     Example:
-        >>> caps = Regex(r"(?<first>\w)(\w)(?:\w)\w(?<last>\w)").captures("toady")
+        >>> caps = Regex(r"(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)").captures("toady")
         >>> caps[0].text, caps["first"].text, caps[2].text, caps["last"].text
         ('toady', 't', 'o', 'y')
     """
@@ -75,7 +91,7 @@ class Captures:
             KeyError: If there is no group with the given name.
         """
     def __iter__(self, /) -> SubCaptureMatches:
-        r"""
+        """
         Returns an iterator over all capture groups. This includes both matching and non-matching groups.
 
         The iterator always yields at least one matching group: the first group (at index ``0``) with no
@@ -85,12 +101,12 @@ class Captures:
         capture group matches.
 
         Example:
-            >>> caps = Regex(r"(\w)(\d)?(\w)").captures("AZ")
+            >>> caps = Regex(r"(\\w)(\\d)?(\\w)").captures("AZ")
             >>> [m.text if m else None for m in caps]
             ['AZ', 'A', None, 'Z']
         """
     def __len__(self, /) -> int:
-        r"""
+        """
         Returns the total number of capture groups. This includes both matching and non-matching groups.
 
         The length returned is always equivalent to the number of elements yielded when iterating over
@@ -98,7 +114,7 @@ class Captures:
         :class:`Captures` value always includes the match for the entire regex.
 
         Example:
-            >>> len(Regex(r"(\w)(\d)?(\w)").captures("AZ"))
+            >>> len(Regex(r"(\\w)(\\d)?(\\w)").captures("AZ"))
             4
         """
     def __repr__(self, /) -> str: ...
@@ -232,7 +248,7 @@ class Captures:
 
 @final
 class Match:
-    r"""
+    """
     Represents a single match of a regex in a haystack.
 
     A :class:`Match` contains both the start and end offsets of the match and the actual substring
@@ -253,7 +269,7 @@ class Match:
         This example shows the value of each of the attributes and methods on :class:`Match` for a
         particular search.
 
-        >>> m = Regex(r"\p{Greek}+").find("Greek: αβγδ")
+        >>> m = Regex(r"\\p{Greek}+").find("Greek: αβγδ")
         >>> m.start, m.end, m.is_empty(), len(m), m.span, m.text
         (7, 11, False, 4, (7, 11), 'αβγδ')
     """
@@ -276,7 +292,7 @@ class Match:
         Returns ``True`` if and only if this match has a length of zero.
 
         Note that an empty match can only occur when the regex itself can match the empty string. Here are
-        some examples of regexes that can all match the empty string: ``^``, ``^$``, ``\b``, ``a?``,
+        some examples of regexes that can all match the empty string: ``^``, ``^$``, ``\\b``, ``a?``,
         ``a*``, ``a{0}``, ``(foo|\\d+|quux)?``.
         """
     @property
@@ -353,12 +369,12 @@ class Regex:
             * Case insensitive matching uses Unicode simple case folding rules.
             * Unicode character classes like ``\\p{Letter}`` and ``\\p{Greek}`` are available.
             * Perl character classes are Unicode aware. That is, ``\\w``, ``\\s`` and ``\\d``.
-            * The word boundary assertions, ``\b`` and ``\\B``, use the Unicode definition of a word
+            * The word boundary assertions, ``\\b`` and ``\\B``, use the Unicode definition of a word
               character.
 
             Note that if Unicode mode is disabled, then the regex will fail to compile if it could
             match invalid UTF-8. For example, when Unicode mode is disabled, then since ``.`` matches
-            any byte (except for ``\n``), then it can match invalid UTF-8 and thus building a regex
+            any byte (except for ``\\n``), then it can match invalid UTF-8 and thus building a regex
             from it will fail. Another example is ``\\w`` and ``\\W``. Since ``\\w`` can only match ASCII
             bytes when Unicode mode is disabled, it's allowed. But ``\\W`` can match more than ASCII
             bytes, including invalid UTF-8, and so it is not allowed.
@@ -382,14 +398,14 @@ class Regex:
             Instead of only matching at the beginning and end of a haystack, respectively, multi-line
             mode causes them to match at the beginning and end of a line *in addition* to the
             beginning and end of a haystack. More precisely, ``^`` will match at the position
-            immediately following a ``\n`` and ``$`` will match at the position immediately preceding
-            a ``\n``.
+            immediately following a ``\\n`` and ``$`` will match at the position immediately preceding
+            a ``\\n``.
 
             The behavior of this option can be impacted by other settings too:
 
-            * The ``line_terminator`` option changes ``\n`` above to any ASCII character.
-            * The ``crlf`` option changes the line terminator to be either ``\r`` or ``\n``, but never
-              at the position between a ``\r`` and ``\n``.
+            * The ``line_terminator`` option changes ``\\n`` above to any ASCII character.
+            * The ``crlf`` option changes the line terminator to be either ``\\r`` or ``\\n``, but never
+              at the position between a ``\\r`` and ``\\n``.
 
             This setting can also be configured using the inline flag ``m`` in the pattern.
 
@@ -397,7 +413,7 @@ class Regex:
         dot_matches_new_line: This configures dot-matches-new-line mode for the entire pattern.
 
             Perhaps surprisingly, the default behavior for ``.`` is not to match any character, but
-            rather, to match any character except for the line terminator (which is ``\n`` by
+            rather, to match any character except for the line terminator (which is ``\\n`` by
             default). When this mode is enabled, the behavior changes such that ``.`` truly matches
             any character.
 
@@ -407,15 +423,15 @@ class Regex:
             The default for this is ``False``.
         crlf: This configures CRLF mode for the entire pattern.
 
-            When CRLF mode is enabled, both ``\r`` ("carriage return" or CR for short) and ``\n``
+            When CRLF mode is enabled, both ``\\r`` ("carriage return" or CR for short) and ``\\n``
             ("line feed" or LF for short) are treated as line terminators. This results in the
             following:
 
             * Unless dot-matches-new-line mode is enabled, ``.`` will now match any character except
-              for ``\n`` and ``\r``.
-            * When multi-line mode is enabled, ``^`` will match immediately following a ``\n`` or a
-              ``\r``. Similarly, ``$`` will match immediately preceding a ``\n`` or a ``\r``. Neither
-              ``^`` nor ``$`` will ever match between ``\r`` and ``\n``.
+              for ``\\n`` and ``\\r``.
+            * When multi-line mode is enabled, ``^`` will match immediately following a ``\\n`` or a
+              ``\\r``. Similarly, ``$`` will match immediately preceding a ``\\n`` or a ``\\r``. Neither
+              ``^`` nor ``$`` will ever match between ``\\r`` and ``\\n``.
 
             This setting can also be configured using the inline flag ``R`` in the pattern.
 
@@ -435,7 +451,7 @@ class Regex:
 
             This option cannot be configured from within the pattern.
 
-            The default line terminator is ``\n``.
+            The default line terminator is ``\\n``.
         swap_greed: This configures swap-greed mode for the entire pattern.
 
             When swap-greed mode is enabled, patterns like ``a+`` will become non-greedy and patterns
@@ -465,11 +481,11 @@ class Regex:
         octal: This configures octal mode for the entire pattern.
 
             Octal syntax is a little-known way of uttering Unicode codepoints in a pattern. For
-            example, ``a``, ``\x61``, ``\u0061`` and ``\141`` are all equivalent patterns, where the
+            example, ``a``, ``\\x61``, ``\\u0061`` and ``\\141`` are all equivalent patterns, where the
             last example shows octal syntax.
 
             While supporting octal syntax isn't in and of itself a problem, it does make good error
-            messages harder. That is, in PCRE based regex engines, syntax like ``\1`` invokes a
+            messages harder. That is, in PCRE based regex engines, syntax like ``\\1`` invokes a
             backreference, which is explicitly unsupported this library. However, many users expect
             backreferences to be supported. Therefore, when octal support is disabled, the error
             message will explicitly mention that backreferences aren't supported.
@@ -565,7 +581,7 @@ class Regex:
         boolean. To make this convenient, we use the :meth:`Captures.extract` API to put the strings
         that match each group into a tuple:
 
-        >>> haystack = "rabbit         54 true\ngroundhog 2 true\ndoes not match\nfox   109    false"
+        >>> haystack = "rabbit         54 true\\ngroundhog 2 true\\ndoes not match\\nfox   109    false"
         >>> regex = Regex(r"(?m)^\\s*(\\S+)\\s+([0-9]+)\\s+(true|false)\\s*$")
         >>> fields = []
         >>> for _, (f1, f2, f3) in (caps.extract() for caps in regex.captures_iter(haystack)):
@@ -589,7 +605,7 @@ class Regex:
         of magnitude:
 
         >>> Regex(r"(?-u:\\w){1000}")
-        Regex('(?-u:\\w){1000}')
+        Regex('(?-u:\\\\w){1000}')
     """
     def __copy__(self, /) -> Regex: ...
     def __deepcopy__(self, memo: Any, /) -> Regex: ...
@@ -709,7 +725,7 @@ class Regex:
             This example shows the significance of ``start`` by demonstrating how it can be used to permit
             look-around assertions in a regex to take the surrounding context into account.
 
-            >>> regex = Regex(r"\bchew\b")
+            >>> regex = Regex(r"\\bchew\\b")
             >>> # We get a match here, but it's probably not intended.
             >>> regex.captures("eschew"[2:])[0].text
             'chew'
@@ -718,7 +734,7 @@ class Regex:
             True
         """
     def captures_iter(self, haystack: str, /) -> CaptureMatches:
-        r"""
+        """
         Returns an iterator that yields successive non-overlapping matches in the given haystack. The
         iterator yields values of type :class:`Captures`.
 
@@ -736,7 +752,7 @@ class Regex:
             We can use this to find all movie titles and their release years in some haystack, where the
             movie is formatted like "'Title' (xxxx)":
 
-            >>> regex = Regex(r"'([^']+)'\s+\(([0-9]{4})\)")
+            >>> regex = Regex(r"'([^']+)'\\s+\\(([0-9]{4})\\)")
             >>> haystack = "'Citizen Kane' (1941), 'The Wizard of Oz' (1939), 'M' (1931)."
             >>> movies = []
             >>> for _, (title, year) in (caps.extract() for caps in regex.captures_iter(haystack)):
@@ -746,7 +762,7 @@ class Regex:
 
             Or with named groups:
 
-            >>> regex = Regex(r"'(?<title>[^']+)'\s+\((?<year>[0-9]{4})\)")
+            >>> regex = Regex(r"'(?<title>[^']+)'\\s+\\((?<year>[0-9]{4})\\)")
             >>> it = regex.captures_iter(haystack)
             >>> caps = next(it)
             >>> caps["title"].text, caps["year"].text
@@ -801,14 +817,14 @@ class Regex:
         Examples:
             Find the first word with exactly 13 Unicode word characters:
 
-            >>> m = Regex(r"\b\\w{13}\b").find("I categorically deny having triskaidekaphobia.")
+            >>> m = Regex(r"\\b\\w{13}\\b").find("I categorically deny having triskaidekaphobia.")
             >>> m.span, m.text
             ((2, 15), 'categorically')
 
             This example shows the significance of ``start`` by demonstrating how it can be used to permit
             look-around assertions in a regex to take the surrounding context into account.
 
-            >>> regex = Regex(r"\bchew\b")
+            >>> regex = Regex(r"\\bchew\\b")
             >>> # We get a match here, but it's probably not intended.
             >>> regex.find("eschew"[2:]).span
             (0, 4)
@@ -830,7 +846,7 @@ class Regex:
             Find every word with exactly 13 Unicode word characters:
 
             >>> haystack = "Retroactively relinquishing remunerations is reprehensible."
-            >>> [m.text for m in Regex(r"\b\\w{13}\b").find_iter(haystack)]
+            >>> [m.text for m in Regex(r"\\b\\w{13}\\b").find_iter(haystack)]
             ['Retroactively', 'relinquishing', 'remunerations', 'reprehensible']
         """
     def is_match(self, haystack: str, /, start: SupportsIndex = 0) -> bool:
@@ -852,13 +868,13 @@ class Regex:
         Examples:
             Test if some haystack contains at least one word with exactly 13 Unicode word characters:
 
-            >>> Regex(r"\b\\w{13}\b").is_match("I categorically deny having triskaidekaphobia.")
+            >>> Regex(r"\\b\\w{13}\\b").is_match("I categorically deny having triskaidekaphobia.")
             True
 
             This example shows the significance of ``start`` by demonstrating how it can be used to permit
             look-around assertions in a regex to take the surrounding context into account.
 
-            >>> regex = Regex(r"\bchew\b")
+            >>> regex = Regex(r"\\bchew\\b")
             >>> # We get a match here, but it's probably not intended.
             >>> regex.is_match("eschew"[2:])
             True
@@ -873,12 +889,12 @@ class Regex:
 
         Example:
             >>> Regex(r"foo\\w+bar").pattern
-            'foo\\w+bar'
+            'foo\\\\w+bar'
         """
     def replace(
         self, haystack: str, replacement: str | collections.abc.Callable[[Captures], str], /, *, literal: bool = False
     ) -> str:
-        r"""
+        """
         Replaces the leftmost-first match in the given haystack with the replacement provided. The
         replacement can be a regular string (where ``$N`` and ``$name`` are expanded to match capture
         groups) or a function that takes a :class:`Captures` and returns the replaced string.
@@ -925,7 +941,7 @@ class Regex:
             But a function will work too. It is given the :class:`Captures` corresponding to a match,
             which allows one to access capturing group matches easily:
 
-            >>> regex = Regex(r"([^,\s]+),\s+(\S+)")
+            >>> regex = Regex(r"([^,\\s]+),\\s+(\\S+)")
             >>> regex.replace("Springsteen, Bruce", lambda caps: f"{caps[2].text} {caps[1].text}")
             'Bruce Springsteen'
 
@@ -933,7 +949,7 @@ class Regex:
             described above) that expands ``$name`` into the corresponding capture group. Here's the last
             example, but using this expansion technique with named capture groups:
 
-            >>> Regex(r"(?<last>[^,\s]+),\s+(?<first>\S+)").replace("Springsteen, Bruce", "$first $last")
+            >>> Regex(r"(?<last>[^,\\s]+),\\s+(?<first>\\S+)").replace("Springsteen, Bruce", "$first $last")
             'Bruce Springsteen'
 
             Note that using ``$2`` instead of ``$first`` or ``$1`` instead of ``$last`` would produce the
@@ -943,7 +959,7 @@ class Regex:
             replacement when it is adjacent to some other literal text. For example, if we wanted to join
             two words together with an underscore:
 
-            >>> Regex(r"(?<first>\w+)\s+(?<second>\w+)").replace("deep fried", "${first}_$second")
+            >>> Regex(r"(?<first>\\w+)\\s+(?<second>\\w+)").replace("deep fried", "${first}_$second")
             'deep_fried'
 
             Without the curly braces, the capture group name ``first_`` would be used, and since it doesn't
@@ -952,7 +968,7 @@ class Regex:
             Finally, sometimes you just want to replace a literal string with no regard for capturing group
             expansion. This can be done with ``literal=True``:
 
-            >>> Regex(r"(?<last>[^,\s]+),\s+(\S+)").replace("Springsteen, Bruce", "$2 $last", literal=True)
+            >>> Regex(r"(?<last>[^,\\s]+),\\s+(\\S+)").replace("Springsteen, Bruce", "$2 $last", literal=True)
             '$2 $last'
 
             Using ``literal=True`` may also be faster, since the replacement string won't need to be parsed
@@ -1024,10 +1040,10 @@ class Regex:
             fields, and normalizes the whitespace that delimits the fields:
 
             >>> haystack = (
-            ...     "Greetings  1973\nWild\t1973\nBornToRun\t\t\t\t1975\n"
-            ...     "Darkness                    1978\nTheRiver 1980"
+            ...     "Greetings  1973\\nWild\\t1973\\nBornToRun\\t\\t\\t\\t1975\\n"
+            ...     "Darkness                    1978\\nTheRiver 1980"
             ... )
-            >>> regex = Regex(r"(?m)^(\\S+)[\\s--\r\n]+(\\S+)$")
+            >>> regex = Regex(r"(?m)^(\\S+)[\\s--\\r\\n]+(\\S+)$")
             >>> print(regex.replace_all(haystack, "$2 $1"))
             1973 Greetings
             1973 Wild
@@ -1088,10 +1104,10 @@ class Regex:
             two matches.
 
             >>> haystack = (
-            ...     "Greetings  1973\nWild\t1973\nBornToRun\t\t\t\t1975\n"
-            ...     "Darkness                    1978\nTheRiver 1980"
+            ...     "Greetings  1973\\nWild\\t1973\\nBornToRun\\t\\t\\t\\t1975\\n"
+            ...     "Darkness                    1978\\nTheRiver 1980"
             ... )
-            >>> regex = Regex(r"(?m)^(\\S+)[\\s--\r\n]+(\\S+)$")
+            >>> regex = Regex(r"(?m)^(\\S+)[\\s--\\r\\n]+(\\S+)$")
             >>> print(regex.replacen(haystack, 2, "$2 $1"))  # doctest: +NORMALIZE_WHITESPACE
             1973 Greetings
             1973 Wild
@@ -1135,7 +1151,7 @@ class Regex:
             This example shows the significance of ``start`` by demonstrating how it can be used to permit
             look-around assertions in a regex to take the surrounding context into account.
 
-            >>> regex = Regex(r"\bchew\b")
+            >>> regex = Regex(r"\\bchew\\b")
             >>> # We get a match here, but it's probably not intended.
             >>> regex.shortest_match("eschew"[2:])
             4
@@ -1157,7 +1173,7 @@ class Regex:
         Examples:
             To split a string delimited by arbitrary amounts of spaces or tabs:
 
-            >>> list(Regex(r"[ \t]+").split("a b \t  c\td    e"))
+            >>> list(Regex(r"[ \\t]+").split("a b \\t  c\\td    e"))
             ['a', 'b', 'c', 'd', 'e']
 
             Basic usage:
@@ -1207,7 +1223,7 @@ class Regex:
             ['', 'a', 'b', 'c']
         """
     def splitn(self, haystack: str, limit: SupportsIndex, /) -> SplitN:
-        r"""
+        """
         Returns an iterator of at most ``limit`` substrings of the haystack given, delimited by a match of
         the regex. (A ``limit`` of ``0`` will return no substrings.) Namely, each element of the iterator
         corresponds to a part of the haystack that *isn't* matched by the regular expression. The remainder
@@ -1224,7 +1240,7 @@ class Regex:
         Examples:
             Get the first two words in some haystack:
 
-            >>> list(Regex(r"\W+").splitn("Hey! How are you?", 3))
+            >>> list(Regex(r"\\W+").splitn("Hey! How are you?", 3))
             ['Hey', 'How', 'are you?']
 
             More cases:
@@ -1267,7 +1283,7 @@ class Regex:
 
 @final
 class RegexSet:
-    r"""
+    """
     Match multiple, possibly overlapping, regexes in a single search.
 
     A regex set corresponds to the union of zero or more regular expressions. That is, a regex set will
@@ -1277,7 +1293,7 @@ class RegexSet:
     with many alternates, since only one alternate can match at a time.
 
     For example, consider regular expressions to match email addresses and domains:
-    ``[a-z]+@[a-z]+\.(com|org|net)`` and ``[a-z]+\.(com|org|net)``. If a regex set is constructed
+    ``[a-z]+@[a-z]+\\.(com|org|net)`` and ``[a-z]+\\.(com|org|net)``. If a regex set is constructed
     from those regexes, then searching the haystack ``foo@example.com`` will report both regexes as
     matching. Of course, one could accomplish this by compiling each regex on its own and doing two
     searches over the haystack. The key advantage of using a regex set is that it will report the
@@ -1342,7 +1358,7 @@ class RegexSet:
     Examples:
         This shows how the above two regexes (for matching email addresses and domains) might work:
 
-        >>> regex_set = RegexSet([r"[a-z]+@[a-z]+\.(com|org|net)", r"[a-z]+\.(com|org|net)"])
+        >>> regex_set = RegexSet([r"[a-z]+@[a-z]+\\.(com|org|net)", r"[a-z]+\\.(com|org|net)"])
         >>> # Ask whether any regexes in the set match.
         >>> regex_set.is_match("foo@example.com")
         True
@@ -1369,7 +1385,7 @@ class RegexSet:
 
         Create a new regex set from an iterable of strings:
 
-        >>> RegexSet([r"\w+", r"\d+"]).is_match("foo")
+        >>> RegexSet([r"\\w+", r"\\d+"]).is_match("foo")
         True
     """
     def __copy__(self, /) -> RegexSet: ...
@@ -1459,7 +1475,7 @@ class RegexSet:
             but then the look-around assertions won't work correctly. Instead, you can use ``start`` to
             specify the start position of a search.
 
-            >>> regex_set = RegexSet([r"\bbar\b", r"(?m)^bar$"])
+            >>> regex_set = RegexSet([r"\\bbar\\b", r"(?m)^bar$"])
             >>> # We get a match here, but it's probably not intended.
             >>> regex_set.is_match("foobar"[3:])
             True
@@ -1508,7 +1524,7 @@ class RegexSet:
 
             This example shows the significance of ``start``:
 
-            >>> regex_set = RegexSet([r"\bbar\b", r"(?m)^bar$"])
+            >>> regex_set = RegexSet([r"\\bbar\\b", r"(?m)^bar$"])
             >>> # We get matches here, but it's probably not intended.
             >>> list(regex_set.matches("foobar"[3:]))
             [0, 1]
@@ -1528,7 +1544,7 @@ class RegexSet:
         Example:
             >>> regex_set = RegexSet([r"\\w+", r"\\d+", r"\\pL+", r"foo", r"bar", r"barfoo", r"foobar"])
             >>> [regex_set.patterns[index] for index in regex_set.matches("foobar")]
-            ['\\w+', '\\pL+', 'foo', 'bar', 'foobar']
+            ['\\\\w+', '\\\\pL+', 'foo', 'bar', 'foobar']
         """
 
 @final
@@ -1546,7 +1562,7 @@ class SetMatches:
     def __len__(self, /) -> int: ...
     def __repr__(self, /) -> str: ...
     def matched(self, /, index: SupportsIndex) -> bool:
-        r"""
+        """
         Whether the regex at the given index matched.
 
         The index for a regex is determined by its insertion order upon the initial construction of a
@@ -1557,7 +1573,7 @@ class SetMatches:
                 that produced these matches.
 
         Example:
-            >>> regex_set = RegexSet([r"[a-z]+@[a-z]+\.(com|org|net)", r"[a-z]+\.(com|org|net)"])
+            >>> regex_set = RegexSet([r"[a-z]+@[a-z]+\\.(com|org|net)", r"[a-z]+\\.(com|org|net)"])
             >>> matches = regex_set.matches("example.com")
             >>> matches.matched(0)
             False
@@ -1565,27 +1581,27 @@ class SetMatches:
             True
         """
     def matched_all(self, /) -> bool:
-        r"""
+        """
         Whether all patterns in this set matched.
 
         Example:
-            >>> regex_set = RegexSet([r"^foo", r"[a-z]+\.com"])
+            >>> regex_set = RegexSet([r"^foo", r"[a-z]+\\.com"])
             >>> regex_set.matches("foo.example.com").matched_all()
             True
         """
     def matched_any(self, /) -> bool:
-        r"""
+        """
         Whether this set contains any matches.
 
         Example:
-            >>> regex_set = RegexSet([r"[a-z]+@[a-z]+\.(com|org|net)", r"[a-z]+\.(com|org|net)"])
+            >>> regex_set = RegexSet([r"[a-z]+@[a-z]+\\.(com|org|net)", r"[a-z]+\\.(com|org|net)"])
             >>> regex_set.matches("foo@example.com").matched_any()
             True
         """
 
 @final
 class SetMatchesIter:
-    r"""
+    """
     An iterator over the set of matches from a regex set.
 
     This will always produces matches in ascending order of index, where the index corresponds to the
@@ -1595,7 +1611,7 @@ class SetMatchesIter:
     ``for`` loops.
 
     Example:
-        >>> regex_set = RegexSet([r"[0-9]", r"[a-z]", r"[A-Z]", r"\p{Greek}"])
+        >>> regex_set = RegexSet([r"[0-9]", r"[a-z]", r"[A-Z]", r"\\p{Greek}"])
         >>> [index for index in regex_set.matches("βa1")]
         [0, 1, 3]
     """
@@ -1664,5 +1680,5 @@ def escape(pattern: str) -> str:
 
     Example:
         >>> escape("1.5-2.0?")
-        '1\\.5\\-2\\.0\\?'
+        '1\\\\.5\\\\-2\\\\.0\\\\?'
     """
