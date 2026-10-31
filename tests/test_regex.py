@@ -158,6 +158,7 @@ class TestSearching:
             counts = list(pool.map(lambda _: sum(1 for _ in regex.captures_iter(haystack)), range(16)))
         assert counts == [5_000] * 16
 
+    @pytest.mark.skipif(sys.implementation.name == "graalpy", reason="GraalPy does not preserve string identity")
     def test_match_text_reuses_haystack(self) -> None:
         haystack = "".join(["ab", "c"])  # A non-interned string.
         m = Regex(".*").find(haystack)
@@ -319,6 +320,7 @@ class TestReplace:
         assert regex.replacen("aaa", 2, "b") == "bba"
         assert regex.replacen("aaa", 0, "b") == "bbb"
 
+    @pytest.mark.skipif(sys.implementation.name == "graalpy", reason="GraalPy does not preserve string identity")
     def test_no_match_returns_haystack(self) -> None:
         haystack = "".join(["x", "yz"])
         assert Regex("a").replace_all(haystack, "b") is haystack

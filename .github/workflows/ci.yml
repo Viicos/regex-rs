@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14', '3.15', 'pypy3.11']
+        python-version: ['3.11', '3.12', '3.13', '3.14', '3.15', 'pypy3.11', 'graalpy3.12', 'graalpy3.13']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -128,7 +128,7 @@ jobs:
 
   # Reference documentation: https://pyo3.rs/v0.30.1/building-and-distribution.html#py_limited_apiabi3abi3t.
   build:
-    name: Build wheels on ${{ matrix.os }} (${{ matrix.target }}${{ matrix.os == 'linux' && format(' - {0}', matrix.manylinux) || '' }}${{ matrix.pypy && ' - PyPy' || '' }})
+    name: Build wheels on ${{ matrix.os }} (${{ matrix.target }}${{ matrix.os == 'linux' && format(' - {0}', matrix.manylinux) || '' }}${{ matrix.implementation && format(' - {0}', matrix.implementation) || '' }})
     permissions:
       contents: read
       # Required to attest build provenance, verified by the release job:
@@ -174,28 +174,53 @@ jobs:
             target: x86_64
             # PyPy 8.0 requires glibc 2.28:
             manylinux: '2_28'
-            pypy: true
+            implementation: pypy
             # `pypy3.11` resolves to PyPy 7.3 in the manylinux images (see https://github.com/pypa/manylinux/pull/1996):
             interpreter: /opt/python/pp311-pypy311_pp80/bin/python
           - os: linux
             runs-on: ubuntu-24.04-arm
             target: aarch64
             manylinux: '2_28'
-            pypy: true
+            implementation: pypy
             interpreter: /opt/python/pp311-pypy311_pp80/bin/python
           # On macOS and Windows, the interpreter is provided by the "Install PyPy" step below:
           - os: macos
             runs-on: macos-latest
             target: x86_64
-            pypy: true
+            implementation: pypy
           - os: macos
             runs-on: macos-latest
             target: aarch64
-            pypy: true
+            implementation: pypy
           - os: windows
             runs-on: windows-latest
             target: x86_64
-            pypy: true
+            implementation: pypy
+
+          # GraalPy is not supported by `abi3` either.
+          - os: linux
+            runs-on: ubuntu-latest
+            target: x86_64
+            # GraalPy 3.13 is only provided by the `manylinux_2_28` images:
+            manylinux: '2_28'
+            implementation: graalpy
+            interpreter: graalpy3.12 graalpy3.13
+          - os: linux
+            runs-on: ubuntu-24.04-arm
+            target: aarch64
+            manylinux: '2_28'
+            implementation: graalpy
+            interpreter: graalpy3.12 graalpy3.13
+          # On macOS and Windows, the interpreters are provided by the "Install GraalPy" step below.
+          # GraalPy is not distributed for macOS x86_64 anymore.
+          - os: macos
+            runs-on: macos-latest
+            target: aarch64
+            implementation: graalpy
+          - os: windows
+            runs-on: windows-latest
+            target: x86_64
+            implementation: graalpy
 
     runs-on: ${{ matrix.runs-on }}
     steps:
@@ -209,7 +234,7 @@ jobs:
 
       # On Linux, wheels are built in a manylinux/musllinux container providing the interpreters.
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        if: matrix.os != 'linux' && !matrix.pypy
+        if: matrix.os != 'linux' && !matrix.implementation
         with:
           python-version: |
             3.11
@@ -223,7 +248,7 @@ jobs:
       # The `abi3t` wheel is built separately, as building it along with Python 3.11 results
       # in a version-specific Python 3.11 wheel instead of an `abi3` one (as of maturin 1.15.0).
       - name: Build abi3 and free-threaded 3.14 wheels
-        if: '!matrix.pypy'
+        if: '!matrix.implementation'
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
@@ -234,7 +259,7 @@ jobs:
           rust-toolchain: stable
 
       - name: Build abi3t wheel
-        if: '!matrix.pypy'
+        if: '!matrix.implementation'
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
@@ -247,7 +272,7 @@ jobs:
       # `pypy3.11` may resolve to PyPy 7.3 on the runners, so the latest PyPy 3.11 (PyPy 8.0) is installed with uv:
       - name: Install PyPy
         id: pypy
-        if: matrix.pypy && matrix.os != 'linux'
+        if: matrix.implementation == 'pypy' && matrix.os != 'linux'
         shell: bash
         run: |
           uv python install pypy3.11
@@ -258,28 +283,44 @@ jobs:
           fi
           echo "interpreter=$interpreter" >> "$GITHUB_OUTPUT"
 
-      - name: Build PyPy wheel
-        if: matrix.pypy
+      - name: Install GraalPy
+        id: graalpy
+        if: matrix.implementation == 'graalpy' && matrix.os != 'linux'
+        shell: bash
+        run: |
+          uv python install graalpy3.12 graalpy3.13
+          interpreters=()
+          for version in 3.12 3.13; do
+            interpreter="$(uv python find --managed-python "graalpy$version")"
+            if command -v cygpath &> /dev/null; then
+              interpreter="$(cygpath --mixed "$interpreter")"
+            fi
+            interpreters+=("$interpreter")
+          done
+          echo "interpreters=${interpreters[*]}" >> "$GITHUB_OUTPUT"
+
+      - name: Build ${{ matrix.implementation }} wheels
+        if: matrix.implementation
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
           maturin-version: v1.15.0
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
-          args: --release --locked --out dist --interpreter ${{ steps.pypy.outputs.interpreter || matrix.interpreter }}
+          args: --release --locked --out dist --interpreter ${{ steps.pypy.outputs.interpreter || steps.graalpy.outputs.interpreters || matrix.interpreter }}
           rust-toolchain: stable
 
       - name: Check built wheels
         shell: bash
         run: |
           ls -lh dist/
-          if [ "$PYPY" = true ]; then
-            ls dist/*-pp311-pypy311_pp80-*.whl
-          else
-            ls dist/*-cp311-abi3-*.whl dist/*-cp314-cp314t-*.whl dist/*-cp315-abi3.abi3t-*.whl
-          fi
+          case "$IMPLEMENTATION" in
+            pypy) ls dist/*-pp311-pypy311_pp80-*.whl ;;
+            graalpy) ls dist/*-graalpy312-graalpy*_312_native-*.whl dist/*-graalpy313-graalpy*_313_native-*.whl ;;
+            *) ls dist/*-cp311-abi3-*.whl dist/*-cp314-cp314t-*.whl dist/*-cp315-abi3.abi3t-*.whl ;;
+          esac
         env:
-          PYPY: ${{ matrix.pypy }}
+          IMPLEMENTATION: ${{ matrix.implementation }}
 
       - run: uv sync --only-group build
 
@@ -292,7 +333,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: pypi_files_${{ matrix.os }}_${{ matrix.target }}_${{ matrix.manylinux || 'native' }}${{ matrix.pypy && '_pypy' || '' }}
+          name: pypi_files_${{ matrix.os }}_${{ matrix.target }}_${{ matrix.manylinux || 'native' }}${{ matrix.implementation && format('_{0}', matrix.implementation) || '' }}
           path: dist
 
   test-builds:
@@ -303,11 +344,16 @@ jobs:
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
         # Pinned, as `pypy3.11` may resolve to PyPy 7.3 (`pp73` ABI) on the runners. PyPy 3.11.17 is PyPy 8.0 (`pp80` ABI):
-        python-version: ['3.11', '3.14t', '3.15', '3.15t', 'pypy@3.11.17']
-        # PyPy does not support Windows on ARM:
+        python-version: ['3.11', '3.14t', '3.15', '3.15t', 'pypy@3.11.17', 'graalpy3.12', 'graalpy3.13']
         exclude:
+          # PyPy does not support Windows on ARM:
           - os: windows-11-arm
             python-version: pypy@3.11.17
+          # GraalPy does not support Windows on ARM:
+          - os: windows-11-arm
+            python-version: graalpy3.12
+          - os: windows-11-arm
+            python-version: graalpy3.13
 
     runs-on: ${{ matrix.os }}
     steps:
