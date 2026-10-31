@@ -1,0 +1,9 @@
++++
+date = 2026-10-31
+nonce = "6ddeb0ab"
+section = "packaging"
+
+[metadata]
+gh_pr = 2
++++
+Lower the minimum supported Rust version (MSRV) to 1.93

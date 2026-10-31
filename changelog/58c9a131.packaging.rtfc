@@ -1,0 +1,9 @@
++++
+date = 2026-10-31
+nonce = "58c9a131"
+section = "packaging"
+
+[metadata]
+gh_pr = 2
++++
+Publish wheels for `PyEmscripten <https://pyodide.org/en/latest/development/abi.html>`__ (Pyodide 314, ``pyemscripten_2026_0`` platform)

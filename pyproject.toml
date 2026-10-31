@@ -50,6 +50,9 @@ docs = [
 build = [
     "twine",
 ]
+pyodide-build = [
+    "pyodide-build",
+]
 
 [tool.maturin]
 python-source = "python"
