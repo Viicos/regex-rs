@@ -99,7 +99,7 @@ strict = true
 [tool.rtfc]
 changelog = "docs/source/changelog.rst"
 sections = [
-    "packaging",
+    {id = "packaging", label = "Packaging"},
     {id = "change", label = "Changes"},
     {id = "feature", label = "Features"},
     {id = "bugfix", label = "Bug fixes"},

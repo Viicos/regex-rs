@@ -2,5 +2,8 @@
 date = 2026-10-31
 nonce = "849a3209"
 section = "packaging"
+
+[metadata]
+gh_pr = 1
 +++
-Publish wheels for PyPy 3.11 (PyPy 8.0, ``pp80`` ABI).
+Publish wheels for PyPy 3.11 (PyPy 8.0, ``pp80`` ABI)
