@@ -18,7 +18,13 @@ def _examples() -> list[doctest.DocTest]:
         obj = getattr(regex_rs, name)
         objects = [(f"regex_rs.{name}", obj)]
         if inspect.isclass(obj):
-            objects += [(f"regex_rs.{name}.{attr}", value) for attr, value in vars(obj).items() if attr != "__doc__"]
+            # Only methods and properties: other class attributes (such as `__firstlineno__`, an `int` on
+            # Python 3.13+) would expose the docstring of their type.
+            objects += [
+                (f"regex_rs.{name}.{attr}", value)
+                for attr, value in vars(obj).items()
+                if inspect.isroutine(value) or inspect.isdatadescriptor(value)
+            ]
         for qualname, value in objects:
             doc = getattr(value, "__doc__", None)
             if isinstance(doc, str) and ">>>" in doc:
