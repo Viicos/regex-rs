@@ -166,7 +166,8 @@ jobs:
           - os: windows
             runs-on: windows-11-arm
             target: aarch64
-          # Cross-compiled, and tested under emulation by the `test-builds-emulated` job:
+          # Cross-compiled, and tested under emulation by the `test-builds-emulated` job.
+          # `s390x-unknown-linux-musl` is a tier 3 Rust target (no prebuilt standard library), so no musllinux s390x wheel.
           - os: linux
             runs-on: ubuntu-latest
             target: i686
@@ -195,10 +196,6 @@ jobs:
             runs-on: ubuntu-latest
             target: s390x
             manylinux: auto
-          - os: linux
-            runs-on: ubuntu-latest
-            target: s390x
-            manylinux: musllinux_1_2
           - os: linux
             runs-on: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
@@ -442,8 +439,6 @@ jobs:
           - image: musllinux_1_2_ppc64le
             platform: linux/ppc64le
           - image: manylinux_2_28_s390x
-            platform: linux/s390x
-          - image: musllinux_1_2_s390x
             platform: linux/s390x
           - image: manylinux_2_39_riscv64
             platform: linux/riscv64

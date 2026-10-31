@@ -6,4 +6,4 @@ section = "packaging"
 [metadata]
 gh_pr = 4
 +++
-Publish wheels for Linux i686, armv7, ppc64le, s390x and riscv64 (manylinux and musllinux)
+Publish wheels for Linux i686, armv7, ppc64le and riscv64 (manylinux and musllinux), and s390x (manylinux only)
