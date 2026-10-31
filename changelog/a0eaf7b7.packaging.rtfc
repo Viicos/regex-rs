@@ -1,9 +1,0 @@
-+++
-date = 2026-10-31
-nonce = "a0eaf7b7"
-section = "packaging"
-
-[metadata]
-gh_pr = 3
-+++
-Publish wheels for GraalPy 3.12 and 3.13 (GraalPy 25)

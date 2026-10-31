@@ -1,6 +1,6 @@
 [package]
 name = "regexrs-py"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 # Can't be higher than the Rust toolchain required by Pyodide (`pyodide config get rust_toolchain`),
 # used to build the PyEmscripten wheels:
