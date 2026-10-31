@@ -21,6 +21,8 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
     "Programming Language :: Rust",
     "Typing :: Typed",
     "Intended Audience :: Developers",
@@ -96,6 +98,12 @@ strict = true
 
 [tool.rtfc]
 changelog = "docs/source/changelog.rst"
+sections = [
+    "packaging",
+    {id = "change", label = "Changes"},
+    {id = "feature", label = "Features"},
+    {id = "bugfix", label = "Bug fixes"},
+]
 
 [tool.rtfc.render]
 entry_template_file = "changelog/entry.rst.jinja"

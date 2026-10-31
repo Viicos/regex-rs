@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14', '3.15']
+        python-version: ['3.11', '3.12', '3.13', '3.14', '3.15', 'pypy3.11']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -128,7 +128,7 @@ jobs:
 
   # Reference documentation: https://pyo3.rs/v0.30.1/building-and-distribution.html#py_limited_apiabi3abi3t.
   build:
-    name: Build wheels on ${{ matrix.os }} (${{ matrix.target }}${{ matrix.os == 'linux' && format(' - {0}', matrix.manylinux) || '' }})
+    name: Build wheels on ${{ matrix.os }} (${{ matrix.target }}${{ matrix.os == 'linux' && format(' - {0}', matrix.manylinux) || '' }}${{ matrix.pypy && ' - PyPy' || '' }})
     permissions:
       contents: read
       # Required to attest build provenance, verified by the release job:
@@ -167,15 +167,49 @@ jobs:
             runs-on: windows-11-arm
             target: aarch64
 
+          # PyPy is not supported by `abi3`, so a version-specific wheel is built for PyPy 3.11.
+          # PyPy 3.11 exists with both the PyPy 7.3 (`pp73`) and 8.0 (`pp80`) ABIs, only the latter is supported.
+          - os: linux
+            runs-on: ubuntu-latest
+            target: x86_64
+            # PyPy 8.0 requires glibc 2.28:
+            manylinux: '2_28'
+            pypy: true
+            # `pypy3.11` resolves to PyPy 7.3 in the manylinux images (see https://github.com/pypa/manylinux/pull/1996):
+            interpreter: /opt/python/pp311-pypy311_pp80/bin/python
+          - os: linux
+            runs-on: ubuntu-24.04-arm
+            target: aarch64
+            manylinux: '2_28'
+            pypy: true
+            interpreter: /opt/python/pp311-pypy311_pp80/bin/python
+          # On macOS and Windows, the interpreter is provided by the "Install PyPy" step below:
+          - os: macos
+            runs-on: macos-latest
+            target: x86_64
+            pypy: true
+          - os: macos
+            runs-on: macos-latest
+            target: aarch64
+            pypy: true
+          - os: windows
+            runs-on: windows-latest
+            target: x86_64
+            pypy: true
+
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: false
+
       # On Linux, wheels are built in a manylinux/musllinux container providing the interpreters.
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        if: matrix.os != 'linux'
+        if: matrix.os != 'linux' && !matrix.pypy
         with:
           python-version: |
             3.11
@@ -189,6 +223,7 @@ jobs:
       # The `abi3t` wheel is built separately, as building it along with Python 3.11 results
       # in a version-specific Python 3.11 wheel instead of an `abi3` one (as of maturin 1.15.0).
       - name: Build abi3 and free-threaded 3.14 wheels
+        if: '!matrix.pypy'
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
@@ -199,6 +234,7 @@ jobs:
           rust-toolchain: stable
 
       - name: Build abi3t wheel
+        if: '!matrix.pypy'
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
@@ -208,15 +244,42 @@ jobs:
           args: --release --locked --out dist --interpreter 3.15
           rust-toolchain: stable
 
+      # `pypy3.11` may resolve to PyPy 7.3 on the runners, so the latest PyPy 3.11 (PyPy 8.0) is installed with uv:
+      - name: Install PyPy
+        id: pypy
+        if: matrix.pypy && matrix.os != 'linux'
+        shell: bash
+        run: |
+          uv python install pypy3.11
+          interpreter="$(uv python find --managed-python pypy3.11)"
+          "$interpreter" -c 'import sysconfig; soabi = sysconfig.get_config_var("SOABI"); assert "pp80" in soabi, soabi'
+          if command -v cygpath &> /dev/null; then
+            interpreter="$(cygpath --mixed "$interpreter")"
+          fi
+          echo "interpreter=$interpreter" >> "$GITHUB_OUTPUT"
+
+      - name: Build PyPy wheel
+        if: matrix.pypy
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          # Keep in sync with `build-system.requires` in `pyproject.toml`:
+          maturin-version: v1.15.0
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux }}
+          args: --release --locked --out dist --interpreter ${{ steps.pypy.outputs.interpreter || matrix.interpreter }}
+          rust-toolchain: stable
+
       - name: Check built wheels
         shell: bash
         run: |
           ls -lh dist/
-          ls dist/*-cp311-abi3-*.whl dist/*-cp314-cp314t-*.whl dist/*-cp315-abi3.abi3t-*.whl
-
-      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
-        with:
-          enable-cache: false
+          if [ "$PYPY" = true ]; then
+            ls dist/*-pp311-pypy311_pp80-*.whl
+          else
+            ls dist/*-cp311-abi3-*.whl dist/*-cp314-cp314t-*.whl dist/*-cp315-abi3.abi3t-*.whl
+          fi
+        env:
+          PYPY: ${{ matrix.pypy }}
 
       - run: uv sync --only-group build
 
@@ -229,7 +292,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: pypi_files_${{ matrix.os }}_${{ matrix.target }}_${{ matrix.manylinux || 'native' }}
+          name: pypi_files_${{ matrix.os }}_${{ matrix.target }}_${{ matrix.manylinux || 'native' }}${{ matrix.pypy && '_pypy' || '' }}
           path: dist
 
   test-builds:
@@ -239,7 +302,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
-        python-version: ['3.11', '3.14t', '3.15', '3.15t']
+        # Pinned, as `pypy3.11` may resolve to PyPy 7.3 (`pp73` ABI) on the runners. PyPy 3.11.17 is PyPy 8.0 (`pp80` ABI):
+        python-version: ['3.11', '3.14t', '3.15', '3.15t', 'pypy@3.11.17']
+        # PyPy does not support Windows on ARM:
+        exclude:
+          - os: windows-11-arm
+            python-version: pypy@3.11.17
 
     runs-on: ${{ matrix.os }}
     steps:
