@@ -1,0 +1,6 @@
++++
+date = 2026-10-31
+nonce = "732c2cf7"
+section = "packaging"
++++
+Publish wheels for Linux i686, armv7, ppc64le, s390x and riscv64 (manylinux and musllinux)
