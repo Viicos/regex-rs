@@ -172,6 +172,8 @@ jobs:
             runs-on: ubuntu-latest
             target: i686
             manylinux: auto
+            # Experiment: DNS resolution fails in the `manylinux2014_i686` image on `ubuntu-26.04` runners:
+            docker-options: --dns 1.1.1.1
           - os: linux
             runs-on: ubuntu-latest
             target: i686
@@ -295,6 +297,7 @@ jobs:
           manylinux: ${{ matrix.manylinux }}
           args: --release --locked --out dist --interpreter 3.11 3.14t
           rust-toolchain: stable
+          docker-options: ${{ matrix.docker-options }}
 
       - name: Build abi3t wheel
         if: '!matrix.implementation'
@@ -306,6 +309,7 @@ jobs:
           manylinux: ${{ matrix.manylinux }}
           args: --release --locked --out dist --interpreter 3.15
           rust-toolchain: stable
+          docker-options: ${{ matrix.docker-options }}
 
       # `pypy3.11` may resolve to PyPy 7.3 on the runners, so the latest PyPy 3.11 (PyPy 8.0) is installed with uv:
       - name: Install PyPy
