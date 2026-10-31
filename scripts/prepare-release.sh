@@ -69,4 +69,4 @@ git commit --quiet --message "Prepare release $tag"
 git push --quiet --set-upstream origin "$branch"
 
 gh pr create --base main --head "$branch" --title "Prepare release $tag" --body-file "$notes"
-gh release create "$tag" --draft --target main --title "$tag" --notes-file "$notes"
+gh release create "$tag" --draft --target main --title "$tag - $(date +%F)" --notes-file "$notes"
