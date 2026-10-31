@@ -111,7 +111,7 @@ jobs:
       - uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           command: sdist
           args: --out dist
           rust-toolchain: stable
@@ -246,13 +246,13 @@ jobs:
       # - a version-specific wheel for free-threaded Python 3.14 (not supported by `abi3`).
       # - an `abi3t` wheel with Python 3.15, for both GIL-enabled and free-threaded Python 3.15 and up.
       # The `abi3t` wheel is built separately, as building it along with Python 3.11 results
-      # in a version-specific Python 3.11 wheel instead of an `abi3` one (as of maturin 1.15.0).
+      # in a version-specific Python 3.11 wheel instead of an `abi3` one (as of maturin 1.16.0).
       - name: Build abi3 and free-threaded 3.14 wheels
         if: '!matrix.implementation'
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
           args: --release --locked --out dist --interpreter 3.11 3.14t
@@ -263,7 +263,7 @@ jobs:
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
           args: --release --locked --out dist --interpreter 3.15
@@ -304,7 +304,7 @@ jobs:
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
           args: --release --locked --out dist --interpreter ${{ steps.pypy.outputs.interpreter || steps.graalpy.outputs.interpreters || matrix.interpreter }}
@@ -434,7 +434,7 @@ jobs:
           MATURIN_PYEMSCRIPTEN_PLATFORM_VERSION: ${{ steps.pyodide-config.outputs.pyodide-abi-version }}
         with:
           # Keep in sync with `build-system.requires` in `pyproject.toml`:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: wasm32-unknown-emscripten
           args: --release --locked --out dist --interpreter ${{ matrix.python-version }}
           rust-toolchain: ${{ steps.pyodide-config.outputs.rust-toolchain }}
