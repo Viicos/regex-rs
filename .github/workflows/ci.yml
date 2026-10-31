@@ -472,7 +472,6 @@ jobs:
             for python in /opt/python/cp311-cp311 /opt/python/cp314-cp314t /opt/python/cp315-cp315 /opt/python/cp315-cp315t; do
               venv="/tmp/$(basename "$python")"
               "$python/bin/python" -m venv "$venv"
-              # The pip version bundled with older Pythons doesn't support manylinux wheels on riscv64:
               "$venv/bin/python" -m pip install --quiet --upgrade pip
               "$venv/bin/python" -m pip install --quiet pytest
               "$venv/bin/python" -m pip install --quiet regexrs-py --no-index --no-deps --find-links dist
